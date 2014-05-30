@@ -1,0 +1,233 @@
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3
+END
+error.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/error.hpp
+END
+info.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/info.hpp
+END
+consumer.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/consumer.hpp
+END
+image_info.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/image_info.hpp
+END
+Doxyfile
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/Doxyfile
+END
+AUTHORS
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/AUTHORS
+END
+io_base.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/io_base.hpp
+END
+gray_pixel.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/gray_pixel.hpp
+END
+index_pixel.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/index_pixel.hpp
+END
+pixel_buffer.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/pixel_buffer.hpp
+END
+BUGS
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/BUGS
+END
+color.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/color.hpp
+END
+INSTALL
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/INSTALL
+END
+COPYING
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/COPYING
+END
+streaming_base.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/streaming_base.hpp
+END
+info_base.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/info_base.hpp
+END
+NEWS
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/NEWS
+END
+tRNS.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/tRNS.hpp
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/Makefile
+END
+convert_color_space.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/convert_color_space.hpp
+END
+palette.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/palette.hpp
+END
+ChangeLog
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/ChangeLog
+END
+reader.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/reader.hpp
+END
+types.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/types.hpp
+END
+config.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/config.hpp
+END
+pixel_traits.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/pixel_traits.hpp
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/README
+END
+rgb_pixel.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/rgb_pixel.hpp
+END
+rgba_pixel.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/rgba_pixel.hpp
+END
+writer.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/writer.hpp
+END
+TODO
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/TODO
+END
+end_info.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/end_info.hpp
+END
+image.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/image.hpp
+END
+png.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/png.hpp
+END
+require_color_space.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/require_color_space.hpp
+END
+generator.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/generator.hpp
+END
+packed_pixel.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/packed_pixel.hpp
+END
+ga_pixel.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/ga_pixel.hpp
+END

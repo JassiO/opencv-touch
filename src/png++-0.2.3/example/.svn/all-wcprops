@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/example
+END
+generated.png
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/example/generated.png
+END
+pixel_generator
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/example/pixel_generator
+END
+pixel_generator.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/example/pixel_generator.cpp
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/example/Makefile
+END
+pixel_generator.dep
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/multiViewTools/!svn/ver/3/trunk/libptpCamera/src/png++-0.2.3/example/pixel_generator.dep
+END
