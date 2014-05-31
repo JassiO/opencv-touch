@@ -4,9 +4,9 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-int SYSTEM_INPUT = 0; // use pictures; change it to 1 to use the stream
-
 using namespace cv;
+
+int SYSTEM_INPUT = 1; // use a picture; change it to 1 to use the stream
 
 baumer::BCamera* g_cam = 0;
 baumer::BSystem* g_system  = 0;
@@ -36,14 +36,20 @@ int main() {
 		// infinte loop for the stream
 		open_stream(width, height);
 	}
-
+	
 	////////// PICTURE //////////
 	else {
 		namedWindow("Image", CV_WINDOW_AUTOSIZE);
 		namedWindow("Contour", CV_WINDOW_AUTOSIZE);
 
 		// load image
-		IplImage* img = cvLoadImage("touchevent.png");
+		IplImage* img = cvLoadImage("touchevent.png", 1);
+		if (img == NULL) {
+			std::cout << "Error: couldn't load image" << std::endl;
+			return 0;
+		}
+
+		// show loaded image
 		cvShowImage("Image", img);
 
 		get_contours(img);
