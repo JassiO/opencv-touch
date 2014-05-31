@@ -6,7 +6,7 @@
 
 using namespace cv;
 
-int SYSTEM_INPUT = 1; // use a picture; change it to 1 to use the stream
+int SYSTEM_INPUT = 0; // use a picture; change it to 1 to use the stream
 
 baumer::BCamera* g_cam = 0;
 baumer::BSystem* g_system  = 0;
