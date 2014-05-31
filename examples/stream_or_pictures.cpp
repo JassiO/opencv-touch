@@ -88,8 +88,6 @@ void open_stream(int width, int height) {
 
 				// show stream
 				cvShowImage("Stream", frame);
-
-				get_contours(frame);
    
 		        if (char(key) == 27) { // ESC breaks the loop
 		            break;      
@@ -98,9 +96,11 @@ void open_stream(int width, int height) {
 		        	cvSaveImage("current.png", frame);
 		        }
 		        else if (char(key) == 10) { // Enter takes an image of the background
-		        	Mat background(frame);
+		        	background = Mat(frame);
 		        	imshow("Background", background);
 		        }
+
+				get_contours(frame);
 
 		        key = cvWaitKey(10); // throws a segmentation fault
 	    	}
@@ -112,6 +112,8 @@ void get_contours(IplImage* frame) {
 	
 	// calculate contours
 	Mat img(frame);
+	//img = img - background;
+	//imshow("Background2", img);
 	Mat img2;
 	if (SYSTEM_INPUT == 0) {
 		cvtColor(img, img, CV_BGR2GRAY);
