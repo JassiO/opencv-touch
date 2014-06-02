@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/video/background_segm.hpp>
 
 using namespace cv;
 
@@ -14,14 +15,18 @@ baumer::BSystem* g_system  = 0;
 int width = 640;
 int height = 480;
 
-Mat img;
-Mat background;
+
+Mat frameMat;
 char key;
+Mat back;
+Mat background;
+Ptr<BackgroundSubtractor> pMOG;
+Mat MaskMOG;
 
 void cleanup();
 void init_camera();
-void open_stream(int width, int height);
-void get_contours(IplImage* frame);
+void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG);
+void get_contours(Mat img_cont);
 
 int main() {
 
@@ -29,12 +34,15 @@ int main() {
 	if (SYSTEM_INPUT == 1) {
 		namedWindow("Stream", CV_WINDOW_AUTOSIZE);
 		namedWindow("Contour", CV_WINDOW_AUTOSIZE );
+		namedWindow("FG Mask MOG", CV_WINDOW_AUTOSIZE);
+
+		pMOG = new BackgroundSubtractorMOG();
 
 		// initialize baumer camera
 		init_camera();
 
 		// infinte loop for the stream
-		open_stream(width, height);
+		open_stream(width, height, pMOG);
 	}
 	
 	////////// PICTURE //////////
@@ -43,14 +51,15 @@ int main() {
 		namedWindow("Contour", CV_WINDOW_AUTOSIZE);
 
 		// load image
-		IplImage* img = cvLoadImage("touchevent.png", 1);
-		if (img == NULL) {
+		Mat img;
+		img = imread("touchevent.png", CV_LOAD_IMAGE_COLOR);
+		if (!img.data) {
 			std::cout << "Error: couldn't load image" << std::endl;
 			return 0;
 		}
 
 		// show loaded image
-		cvShowImage("Image", img);
+		imshow("Image", img);
 
 		get_contours(img);
 
@@ -75,7 +84,7 @@ void init_camera() {
 	height = g_cam->getHeight();
 }
 
-void open_stream(int width, int height) {
+void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 	while (true) {
 		if (!g_cam->capture() == NULL) {
 			if (g_cam->capture() == NULL) {
@@ -97,28 +106,37 @@ void open_stream(int width, int height) {
 		        }
 		        else if (char(key) == 10) { // Enter takes an image of the background
 		        	background = Mat(frame);
-		        	imshow("Background", background);
 		        }
 
-				get_contours(frame);
+		        // substract the background image, if possible
+		        if (background.size().width > 0 && background.size().height > 0) {
+			        pMOG->operator()(background, MaskMOG);
+			        MaskMOG.inv();
+			        frameMat = MaskMOG;
+			    }
+			    else {
+			    	frameMat = Mat(frame);
+			    }
 
-		        key = cvWaitKey(10); // throws a segmentation fault
+				get_contours(frameMat);
+
+		        key = cvWaitKey(10); // throws a segmentation fault (?)
 	    	}
 		}
 	}
 }
 
-void get_contours(IplImage* frame) {
+void get_contours(Mat img_cont) {
 	
 	// calculate contours
-	Mat img(frame);
-	//img = img - background;
-	//imshow("Background2", img);
 	Mat img2;
 	if (SYSTEM_INPUT == 0) {
-		cvtColor(img, img, CV_BGR2GRAY);
+		cvtColor(img_cont, img_cont, CV_BGR2GRAY);
+		threshold(img_cont, img2, 65, 255, CV_THRESH_BINARY);
 	}
-	threshold(img, img2, 65, 255, CV_THRESH_BINARY); // threshold [0, 255] // _INV
+	else {
+		threshold(img_cont, img2, 20, 255, CV_THRESH_BINARY); // smaller threshold possible because of the background substraction
+	}
 
 	// detect contours
 	vector<vector<Point> > contours;
