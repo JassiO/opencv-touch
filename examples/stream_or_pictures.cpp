@@ -7,7 +7,7 @@
 
 using namespace cv;
 
-int SYSTEM_INPUT = 0; // use a picture; change it to 1 to use the stream
+int SYSTEM_INPUT = 1; // use a picture; change it to 1 to use the stream
 
 baumer::BCamera* g_cam = 0;
 baumer::BSystem* g_system  = 0;
@@ -34,7 +34,6 @@ int main() {
 	if (SYSTEM_INPUT == 1) {
 		namedWindow("Stream", CV_WINDOW_AUTOSIZE);
 		namedWindow("Contour", CV_WINDOW_AUTOSIZE );
-		namedWindow("FG Mask MOG", CV_WINDOW_AUTOSIZE);
 
 		pMOG = new BackgroundSubtractorMOG();
 
