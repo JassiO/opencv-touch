@@ -184,7 +184,9 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        if(background.data) {
 			        pMOG->operator()(background, MaskMOG);
 			        //MaskMOG.inv();
-			        frameMat = MaskMOG;
+			        //frameMat = MaskMOG;
+					//subtract(Mat(frame),background, frameMat, noArray(), -1);
+			        frameMat = MaskMOG - background;
 			    }
 			    else {
 			    	frameMat = Mat(frame);
