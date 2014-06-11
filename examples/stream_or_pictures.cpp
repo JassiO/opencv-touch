@@ -14,8 +14,8 @@
 
 using namespace cv;
 
-int SYSTEM_INPUT = 0; // uses a picture; change it to 1 to use the stream
-int ALGORITHM = 2; // uses only contours; change it to 1 to use MSER or to two to use both
+int SYSTEM_INPUT = 1; // uses a picture; change it to 1 to use the stream
+int ALGORITHM = 1; // uses only contours; change it to 1 to use MSER or to two to use both
 
 baumer::BCamera* g_cam = 0;
 baumer::BSystem* g_system  = 0;
@@ -23,7 +23,7 @@ baumer::BSystem* g_system  = 0;
 int width = 640;
 int height = 480;
 
-Mat frameMat, back, background, MaskMOG, img0, ellipses, gray;
+Mat frameMat, back, background, MaskMOG, img0, ellipses;
 char key;
 Ptr<BackgroundSubtractor> pMOG;
 vector<vector<Point> > contours;
@@ -161,6 +161,8 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 					std::cout << "Error: invalide algorithm number" << std::endl;
 				}
 
+				img0 = frameMat;
+
 		        key = cvWaitKey(10); // throws a segmentation fault (?)
 	    	}
 		}
@@ -202,21 +204,27 @@ void get_contours(Mat img_cont) {
 
 void mser_algo(Mat temp_img)  {
 
-	//cvtColor(temp_img, gray, COLOR_BGR2GRAY);
-
 	if (SYSTEM_INPUT == 0) {
 		cvtColor(temp_img, temp_img, CV_BGR2GRAY);
 	}
 
-	cvtColor(temp_img, img0, COLOR_GRAY2BGR);
-	img0.copyTo(ellipses);
+	temp_img.copyTo(ellipses);
 
-	//MSER ms;
-	//ms(gray, contours, Mat()); 			//do not work
 
-	if (contours.size() <= 0) {
-		std::cout << "Error: no contours extracted" << std::endl; // ERROR ???
-	}
+	int _delta=1;
+	int _min_area=60;
+	int _max_area=14400;
+    double _max_variation=0.25;
+    double _min_diversity=.2;
+   	int _max_evolution=200; //ignored with colored images
+   	double _area_threshold=1.0;
+    double _min_margin=0.003; 
+    int _edge_blur_size=5;
+
+	MSER ms(_delta, _min_area, _max_area, _max_variation, _min_diversity, _max_evolution, _area_threshold, _min_margin, _edge_blur_size);
+	ms(temp_img, contours, Mat()); 			
+
+	std::cout << contours.size() << std::endl;
 
 	for( int i = (int)contours.size()-1; i >= 0; i-- ) {
 		const vector<Point>& r = contours[i];
@@ -231,7 +239,7 @@ void mser_algo(Mat temp_img)  {
 		ellipse( ellipses, box, Scalar(196,255,255), 2 );
 	}
 
-	imshow( "response", img0);
+	//imshow( "response", img0);
 	imshow( "ellipses", ellipses);
 
 }
