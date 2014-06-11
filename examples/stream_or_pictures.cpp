@@ -40,6 +40,17 @@ static const Vec3b bcolors[] = {
     Vec3b(255,255,255)
 };
 
+// mser values
+int _delta=1;
+int _min_area=60;
+int _max_area=14400;
+double _max_variation=0.25;
+double _min_diversity=.2;
+int _max_evolution=200; //ignored with colored images
+double _area_threshold=1.0;
+double _min_margin=0.003; 
+int _edge_blur_size=5;
+
 // callbacks
 void cleanup();
 void init_camera();
@@ -136,11 +147,43 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        else if (char(key) == 10) { // Enter takes an image of the background
 		        	background = Mat(frame);
 		        }
+		        else if(char(key) ==  49 ) {
+		        	++_delta;
+		        }
+		        else if(char(key) ==  33 ) {
+		        	--_delta;
+		        }
+		        else if(char(key) ==  50 ) {
+		        	_min_area += 100;
+		        }
+		        else if(char(key) ==  34 ) {
+		        	_min_area -= 100;
+		        }
+		        else if(char(key) ==  51 ) {
+		        	_max_area += 100;
+		        }
+		        else if(char(key) ==  35 ) {
+		        	_max_area -= 100;
+		        }
+		        else if(char(key) ==  52 ) {
+		        	_max_variation += 0.2;
+		        }
+		        else if(char(key) ==  36 ) {
+		        	_max_variation -= 0.2;
+		        }
+		        else if(char(key) ==  53 ) {
+		        	_max_variation += 0.1;
+		        }
+		        else if(char(key) ==  37 ) {
+		        	_max_variation -= 0.1;
+		        }
+		        
 
 		        // substract the background image, if possible
-		        if (background.size().width > 0 && background.size().height > 0) {
+		        //if (background.size().width > 0 && background.size().height > 0) {
+		        if(background.data) {
 			        pMOG->operator()(background, MaskMOG);
-			        MaskMOG.inv();
+			        //MaskMOG.inv();
 			        frameMat = MaskMOG;
 			    }
 			    else {
@@ -210,21 +253,15 @@ void mser_algo(Mat temp_img)  {
 
 	temp_img.copyTo(ellipses);
 
-
-	int _delta=1;
-	int _min_area=60;
-	int _max_area=14400;
-    double _max_variation=0.25;
-    double _min_diversity=.2;
-   	int _max_evolution=200; //ignored with colored images
-   	double _area_threshold=1.0;
-    double _min_margin=0.003; 
-    int _edge_blur_size=5;
-
 	MSER ms(_delta, _min_area, _max_area, _max_variation, _min_diversity, _max_evolution, _area_threshold, _min_margin, _edge_blur_size);
 	ms(temp_img, contours, Mat()); 			
 
-	std::cout << contours.size() << std::endl;
+	std::cout 	<< "Delta: " <<_delta << ", " 
+				<< "Min Area: " <<_min_area << ", " 
+				<< "Max Area: " << _max_area << ", "
+				<< "Max Variation " << _max_variation << ", "
+				<< "Min Diversity " << _min_diversity << ", "
+				<< "Contours" << contours.size() << std::endl;
 
 	for( int i = (int)contours.size()-1; i >= 0; i-- ) {
 		const vector<Point>& r = contours[i];
