@@ -14,7 +14,7 @@
 
 using namespace cv;
 
-int SYSTEM_INPUT = 1; // uses a picture; change it to 1 to use the stream
+int SYSTEM_INPUT = 0; // uses a picture; change it to 1 to use the stream
 int ALGORITHM = 1; // uses only contours; change it to 1 to use MSER or to two to use both
 
 baumer::BCamera* g_cam = 0;
@@ -58,13 +58,14 @@ void init_camera();
 void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG);
 void get_contours(Mat img_cont);
 void mser_algo(Mat temp_img);
+void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0);
 
 int main() {
 
 	/////////// STREAM //////////
 	if (SYSTEM_INPUT == 1) {
 		namedWindow("Stream", CV_WINDOW_AUTOSIZE);
-		namedWindow("Contour", CV_WINDOW_AUTOSIZE );
+		//namedWindow("Ellipses", CV_WINDOW_AUTOSIZE );
 
 		pMOG = new BackgroundSubtractorMOG();
 
@@ -77,19 +78,19 @@ int main() {
 	
 	////////// PICTURE //////////
 	else if (SYSTEM_INPUT == 0) {
-		namedWindow("Contour", CV_WINDOW_AUTOSIZE);
+		//namedWindow("Contour", CV_WINDOW_AUTOSIZE);
 
 		// load image
 		Mat img;
-		img = imread("touchevent.png", CV_LOAD_IMAGE_COLOR);
+		img = imread("current.png", CV_LOAD_IMAGE_COLOR);
 		if (!img.data) {
 			std::cout << "Error: couldn't load image" << std::endl;
 			return 0;
 		}
 
 		if (ALGORITHM == 0) {
-			    	get_contours(img);
-			    }
+		    get_contours(img);
+		}
 		else if (ALGORITHM == 1) {
 			mser_algo(img);
 		}
@@ -147,6 +148,7 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        }
 		        else if (char(key) == 10) { // Enter takes an image of the background
 		        	background = Mat(frame);
+		        	pMOG->operator()(background, MaskMOG);
 		        }
 		        else if(char(key) ==  49 ) {
 		        	++_delta;
@@ -190,11 +192,12 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        // substract the background image, if possible
 		        //if (background.size().width > 0 && background.size().height > 0) {
 		        if(background.data) {
-			        pMOG->operator()(background, MaskMOG);
+			        
 			        //MaskMOG.inv();
 			        //frameMat = MaskMOG;
 					//subtract(Mat(frame),background, frameMat, noArray(), -1);
 			        frameMat = MaskMOG - background;
+			        //std::cout << "ich komm hier rein!" << std::endl;
 			    }
 			    else {
 			    	frameMat = Mat(frame);
@@ -264,7 +267,7 @@ void mser_algo(Mat temp_img)  {
 	temp_img.copyTo(ellipses);
 
 	MSER ms(_delta, _min_area, _max_area, _max_variation, _min_diversity, _max_evolution, _area_threshold, _min_margin, _edge_blur_size);
-	ms(temp_img, contours, Mat()); 			
+	ms(temp_img, contours, Mat()); 		
 
 	std::cout 	<< "Delta: " <<_delta << ", " 
 				<< "Min Area: " <<_min_area << ", " 
@@ -273,26 +276,36 @@ void mser_algo(Mat temp_img)  {
 				<< "Min Diversity " << _min_diversity << ", "
 				<< "Contours" << contours.size() << std::endl;
 
-	if (skip_first_frame == 1) {
-		for( int i = (int)contours.size()-1; i >= 0; i-- ) {
-			const vector<Point>& r = contours[i];
-			for ( int j = 0; j < (int)r.size(); j++ ) {
-			    Point pt = r[j];
-			    img0.at<Vec3b>(pt) = bcolors[i%9];
-			}
+	cvtColor(ellipses, ellipses, CV_GRAY2BGR);
+	
+	if (SYSTEM_INPUT == 0) {
+		draw_ellipses(contours, ellipses, img0);
+		
+	}
+	else {
+		if (skip_first_frame == 1) {
+			draw_ellipses(contours, ellipses, img0);
+		}
 
-			RotatedRect box = fitEllipse( r ); // maybe try cvfitellipse2
-
-			box.angle=(float)CV_PI/2-box.angle;
-			ellipse( ellipses, box, Scalar(196,255,255), 2 );
+		if(skip_first_frame == 0) {
+			++skip_first_frame;
 		}
 	}
 
-	if(skip_first_frame == 0) {
-		++skip_first_frame;
-	}
-
 	//imshow( "response", img0);
-	imshow( "Contour", ellipses);
+	imshow( "Ellipses", ellipses);
 
+}
+
+void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
+	for( int i = (int)contours.size()-1; i >= 0; i-- ) {
+			const vector<Point>& r = contours[i];
+			//for ( int j = 0; j < (int)r.size(); j++ ) {
+			    //Point pt = r[j];
+			    //img0.at<Vec3b>(pt) = Vec3b(0,125,255); //bcolors[i%9]; // draw an error, don't know what this is for
+			//}
+			RotatedRect box = fitEllipse( r ); // maybe try cvfitellipse2
+			box.angle=(float)CV_PI/2-box.angle;
+			ellipse( ellipses, box, Scalar(125,125,0), 2 ); //196,255,255
+		}
 }
