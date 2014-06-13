@@ -35,13 +35,15 @@ static const Vec3b bcolors[] = {
 };
 
 // mser values
-int _delta=1;
-int _min_area=60;
-int _max_area=14400;
-double _max_variation=0.25;
-double _min_diversity=.2;
-int _max_evolution=200; //ignored with colored images
-double _area_threshold=1.0;
+int _delta=1; 				// default: 1; 			good: 1 						[1; infinity]
+int _min_area=60; 			// default: 60; 		good: 60 						[1; infinity]
+int _max_area=20000;		// default: 14 400; 	good: 20 000 for fingertips		[1; infinity]
+double _max_variation=.03; 	// default: 0.25;		good: 0.03 - 0.05				[0; 1]
+double _min_diversity=.5;	// default: 0.2;		good: 0.5 - 0.7					[0; 1]
+
+//used only with colored images
+int _max_evolution=200;
+double _area_threshold=5.5;
 double _min_margin=0.003; 
 int _edge_blur_size=5;
 
@@ -75,7 +77,7 @@ int main() {
 
 		// load image
 		Mat img;
-		img = imread("current.png", CV_LOAD_IMAGE_COLOR);
+		img = imread("touchevent.png", CV_LOAD_IMAGE_COLOR);
 		if (!img.data) {
 			std::cout << "Error: couldn't load image" << std::endl;
 			return 0;
@@ -190,7 +192,6 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 			        //frameMat = MaskMOG;
 					//subtract(Mat(frame),background, frameMat, noArray(), -1);
 			        frameMat = MaskMOG - background;
-			        //std::cout << "ich komm hier rein!" << std::endl;
 			    }
 			    else {
 			    	frameMat = Mat(frame);
@@ -241,9 +242,11 @@ void get_contours(Mat img_cont) {
 		approxPolyDP(Mat(contours0[k]), contours[k], 3, true);
 
 	Mat cnt_img = Mat::zeros(img2.rows, img2.cols, CV_8UC3);
+
 	if (SYSTEM_INPUT == 0) {
 		img_cont.copyTo(cnt_img); // when it is used with the stream. it shows the same image as the mser algorithm
 	}
+
 	drawContours(cnt_img, contours, -1, Scalar(128,255,255));
 
 	imshow("Contour", cnt_img);
@@ -293,12 +296,7 @@ void mser_algo(Mat temp_img)  {
 void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
 	for( int i = (int)contours.size()-1; i >= 0; i-- ) {
 			const vector<Point>& r = contours[i];
-			//for ( int j = 0; j < (int)r.size(); j++ ) {
-			    //Point pt = r[j];
-			    //img0.at<Vec3b>(pt) = Vec3b(0,125,255); //bcolors[i%9]; // draw an error, don't know what this is for
-			//}
-			RotatedRect box = fitEllipse( r ); // maybe try cvfitellipse2
-			box.angle=(float)CV_PI/2-box.angle;
+			RotatedRect box = fitEllipse( r );
 			ellipse( ellipses, box, Scalar(125,125,0), 2 ); //196,255,255
 		}
 }
