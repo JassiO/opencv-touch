@@ -27,6 +27,7 @@ Mat frameMat, back, background, MaskMOG, img0, ellipses;
 char key;
 Ptr<BackgroundSubtractor> pMOG;
 vector<vector<Point> > contours;
+int skip_first_frame = 0;
 
 static const Vec3b bcolors[] = {
     Vec3b(0,0,255),
@@ -177,6 +178,13 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        else if(char(key) ==  37 ) {
 		        	_max_variation -= 0.1;
 		        }
+		        else if(char(key) ==  54 ) {
+		        	g_cam->setGain(1.05 * g_cam->getGain());
+		        }
+		        else if(char(key) ==  38 ) {
+		        	g_cam->setGain(0.95 * g_cam->getGain());
+		        }
+		        
 		        
 
 		        // substract the background image, if possible
@@ -265,20 +273,26 @@ void mser_algo(Mat temp_img)  {
 				<< "Min Diversity " << _min_diversity << ", "
 				<< "Contours" << contours.size() << std::endl;
 
-	for( int i = (int)contours.size()-1; i >= 0; i-- ) {
-		const vector<Point>& r = contours[i];
-		for ( int j = 0; j < (int)r.size(); j++ ) {
-		    Point pt = r[j];
-		    img0.at<Vec3b>(pt) = bcolors[i%9];
+	if (skip_first_frame == 1) {
+		for( int i = (int)contours.size()-1; i >= 0; i-- ) {
+			const vector<Point>& r = contours[i];
+			for ( int j = 0; j < (int)r.size(); j++ ) {
+			    Point pt = r[j];
+			    img0.at<Vec3b>(pt) = bcolors[i%9];
+			}
+
+			RotatedRect box = fitEllipse( r ); // maybe try cvfitellipse2
+
+			box.angle=(float)CV_PI/2-box.angle;
+			ellipse( ellipses, box, Scalar(196,255,255), 2 );
 		}
+	}
 
-		RotatedRect box = fitEllipse( r ); // maybe try cvfitellipse2
-
-		box.angle=(float)CV_PI/2-box.angle;
-		ellipse( ellipses, box, Scalar(196,255,255), 2 );
+	if(skip_first_frame == 0) {
+		++skip_first_frame;
 	}
 
 	//imshow( "response", img0);
-	imshow( "ellipses", ellipses);
+	imshow( "Contour", ellipses);
 
 }
