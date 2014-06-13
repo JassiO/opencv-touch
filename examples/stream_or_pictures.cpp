@@ -5,13 +5,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/video/background_segm.hpp>
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-/////																							/////
-/////	mser geht zur zeit gar nicht mehr; an sich läuft alles zwar, 							/////
-///// 	der algorithmus ist aber rauskommentiert, da es sonst nur zu Fehlern kommt				/////
-/////																							/////
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
 using namespace cv;
 
 int SYSTEM_INPUT = 0; // uses a picture; change it to 1 to use the stream
