@@ -22,6 +22,10 @@ char key;
 Ptr<BackgroundSubtractor> pMOG;
 vector<vector<Point> > contours;
 int skip_first_frame = 0;
+RotatedRect min_rect;
+bool set_min_rect = true;
+std::vector<Point> min_r;
+RotatedRect min_box;
 
 static const Vec3b bcolors[] = {
     Vec3b(0,0,255),
@@ -38,7 +42,7 @@ static const Vec3b bcolors[] = {
 // mser values
 int _delta=1; 				// default: 1; 			good: 1 						[1; infinity]
 int _min_area=60; 			// default: 60; 		good: 60 						[1; infinity]
-int _max_area=20000;		// default: 14 400; 	good: 20 000 for fingertips		[1; infinity]
+int _max_area=200000;		// default: 14 400; 	good: 20 000 for fingertips		[1; infinity]
 double _max_variation=.03; 	// default: 0.25;		good: 0.03 - 0.05				[0; 1]
 double _min_diversity=.5;	// default: 0.2;		good: 0.5 - 0.7					[0; 1]
 
@@ -55,6 +59,7 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG);
 void get_contours(Mat img_cont);
 void mser_algo(Mat temp_img);
 void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0);
+vector<Point> get_min_box(vector<Point> r, RotatedRect box);
 
 int main() {
 
@@ -189,10 +194,6 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        	max_intens = Mat(frame);
 		        }
 		        
-		        
-
-		        // substract the background image, if possible
-		        //if (background.size().width > 0 && background.size().height > 0) {
 		        if(background.data && minI.data) {
 			        
 		        	++calc_every_second_frame;
@@ -223,8 +224,6 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 				else {
 					std::cout << "Error: invalide algorithm number" << std::endl;
 				}
-
-				img0 = frameMat;
 
 		        key = cvWaitKey(10); // throws a segmentation fault (?)
 	    	}
@@ -263,8 +262,6 @@ void get_contours(Mat img_cont) {
 	drawContours(cnt_img, contours, -1, Scalar(128,255,255));
 
 	imshow("Contour", cnt_img);
-	
-
 }
 
 void mser_algo(Mat temp_img)  {
@@ -301,16 +298,35 @@ void mser_algo(Mat temp_img)  {
 			++skip_first_frame;
 		}
 	}
-
-	//imshow( "response", img0);
 	imshow( "Ellipses", ellipses);
-
 }
 
 void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
 	for( int i = (int)contours.size()-1; i >= 0; i-- ) {
-			const vector<Point>& r = contours[i];
-			RotatedRect box = fitEllipse( r );
-			ellipse( ellipses, box, Scalar(125,125,0), 2 ); //196,255,255
-		}
+		const vector<Point>& r = contours[i];
+		//std::cout << r[0].x << ", " << r[0].y << std::endl;
+		RotatedRect box = fitEllipse( r );
+		get_min_box(r, box);
+		ellipse( ellipses, box, Scalar(125,125,0), 2 ); //196,255,255
+	}
+	if (min_r.size() > 0) {
+		min_box = fitEllipse( min_r );
+		float scaled_touch_x = min_box.center.x / 1392;
+		float scaled_touch_y = min_box.center.y / 1044;
+		std::cout << scaled_touch_x << ", " << scaled_touch_y << std::endl;
+	}
+}
+
+vector<Point> get_min_box(vector<Point> r, RotatedRect box) {
+	
+	if (set_min_rect == true) {
+		min_rect = box;
+		set_min_rect = false;
+	}
+
+	if ((box.size.width < min_rect.size.width) && (box.size.width < min_rect.size.width)) {
+		min_rect = box;
+		min_r = r;
+	}
+	return min_r;
 }
