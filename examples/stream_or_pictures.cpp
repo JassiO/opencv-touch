@@ -7,7 +7,7 @@
 
 using namespace cv;
 
-int SYSTEM_INPUT = 0; // uses a picture; change it to 1 to use the stream
+int SYSTEM_INPUT = 1; // uses a picture; change it to 1 to use the stream
 int ALGORITHM = 1; // uses only contours; change it to 1 to use MSER or to two to use both
 
 baumer::BCamera* g_cam = 0;
@@ -16,7 +16,8 @@ baumer::BSystem* g_system  = 0;
 int width = 640;
 int height = 480;
 
-Mat frameMat, back, background, MaskMOG, img0, ellipses;
+Mat frameMat, back, background, max_intens, MaskMOG, img0, ellipses, temp, gr, b1, b2, temp2, temp3, minI, previous;
+int calc_every_second_frame = 0;
 char key;
 Ptr<BackgroundSubtractor> pMOG;
 vector<vector<Point> > contours;
@@ -77,7 +78,7 @@ int main() {
 
 		// load image
 		Mat img;
-		img = imread("touchevent.png", CV_LOAD_IMAGE_COLOR);
+		img = imread("binary.png", CV_LOAD_IMAGE_COLOR);
 		if (!img.data) {
 			std::cout << "Error: couldn't load image" << std::endl;
 			return 0;
@@ -139,10 +140,13 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		            break;      
 		        }
 		        else if (char(key) == 32) { // Space saves the current image
-		        	cvSaveImage("current.png", frame);
+		        	//cvSaveImage("current.png", frame);
+		        	cvSaveImage("min.png", frame);
+		        	minI = imread("min.png", CV_LOAD_IMAGE_GRAYSCALE);
 		        }
 		        else if (char(key) == 10) { // Enter takes an image of the background
-		        	background = Mat(frame);
+		        	//cvSaveImage("background.png", frame);
+		        	background = imread("background.png", CV_LOAD_IMAGE_GRAYSCALE);
 		        	pMOG->operator()(background, MaskMOG);
 		        }
 		        else if(char(key) ==  49 ) {
@@ -181,19 +185,28 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        else if(char(key) ==  38 ) {
 		        	g_cam->setGain(0.95 * g_cam->getGain());
 		        }
+		        else if (char(key) == 43) {
+		        	max_intens = Mat(frame);
+		        }
 		        
 		        
 
 		        // substract the background image, if possible
 		        //if (background.size().width > 0 && background.size().height > 0) {
-		        if(background.data) {
+		        if(background.data && minI.data) {
 			        
-			        //MaskMOG.inv();
-			        //frameMat = MaskMOG;
-					//subtract(Mat(frame),background, frameMat, noArray(), -1);
-			        frameMat = MaskMOG - background;
+		        	++calc_every_second_frame;
+			    	if (calc_every_second_frame % 2 == 1) {
+			    		subtract(Mat(frame), minI, temp2, noArray(), -1);
+			    		subtract(background, minI, temp3, noArray(), -1);
+			    		frameMat = ( temp2 / temp3) * pow(2, 8);
+			    		frameMat.copyTo(previous);
+			    	}
+			    	else {
+			    		frameMat = previous;
+			    	}
 			    }
-			    else {
+			    else {                            
 			    	frameMat = Mat(frame);
 			    }
 
@@ -265,12 +278,13 @@ void mser_algo(Mat temp_img)  {
 	MSER ms(_delta, _min_area, _max_area, _max_variation, _min_diversity, _max_evolution, _area_threshold, _min_margin, _edge_blur_size);
 	ms(temp_img, contours, Mat()); 		
 
+	/*
 	std::cout 	<< "Delta: " <<_delta << ", " 
 				<< "Min Area: " <<_min_area << ", " 
 				<< "Max Area: " << _max_area << ", "
 				<< "Max Variation " << _max_variation << ", "
 				<< "Min Diversity " << _min_diversity << ", "
-				<< "Contours" << contours.size() << std::endl;
+				<< "Contours" << contours.size() << std::endl; */
 
 	cvtColor(ellipses, ellipses, CV_GRAY2BGR);
 	
