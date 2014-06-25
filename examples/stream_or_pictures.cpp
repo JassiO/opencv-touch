@@ -313,16 +313,26 @@ void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
 
 	if (SYSTEM_INPUT == 1) {
 		if (min_r.size() > 0) {
-			min_box = fitEllipse( min_r );
+			/* min_box = fitEllipse( min_r );
 			float scaled_touch_x = min_box.center.x / 1392;
 			float scaled_touch_y = min_box.center.y / 1044;
-			std::cout << scaled_touch_x << ", " << scaled_touch_y << std::endl;
+			std::cout << scaled_touch_x << ", " << scaled_touch_y << std::endl; */
+
+			for (int i = 0; i < int(min_rect.size()); ++i) {
+			min_box = fitEllipse( min_r[i] );
+			float scaled_touch_x = min_box.center.x / 1392;
+			float scaled_touch_y = min_box.center.y / 1044;
+			std::cout << "Touchpoint " << i << ": " << "[" << scaled_touch_x << ", " << scaled_touch_y << "]" << std::endl;
+		}
 			
 		}
 	}
 	else {
-		for (int i = 0; i < min_rect.size(); ++i) {
+		for (int i = 0; i < int(min_rect.size()); ++i) {
 			min_box = fitEllipse( min_r[i] );
+
+			///// Here you get the touchpoints, have fun ;) /////
+
 			float scaled_touch_x = min_box.center.x / 1392;
 			float scaled_touch_y = min_box.center.y / 1044;
 			std::cout << "Touchpoint " << i << ": " << "[" << scaled_touch_x << ", " << scaled_touch_y << "]" << std::endl;
@@ -331,18 +341,6 @@ void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
 }
 
 void get_min_box(vector<Point> r, RotatedRect box) {
-	
-	/*
-	if (set_min_rect == true) {
-		min_rect = box;
-		min_r = r;
-		set_min_rect = false;
-	}
-
-	if ((box.size.width < min_rect.size.width) && (box.size.width < min_rect.size.width)) {
-		min_rect = box;
-		min_r = r;
-	}*/
 
 	if ((box.size.width < 50) && (box.size.width < 50)) {
 		min_rect.push_back(box);
