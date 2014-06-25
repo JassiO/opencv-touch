@@ -7,7 +7,7 @@
 
 using namespace cv;
 
-int SYSTEM_INPUT = 0; // uses a picture; change it to 1 to use the stream
+int SYSTEM_INPUT = 1; // uses a picture; change it to 1 to use the stream
 int ALGORITHM = 1; // uses only contours; change it to 1 to use MSER or to two to use both
 
 baumer::BCamera* g_cam = 0;
@@ -343,7 +343,25 @@ void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
 void get_min_box(vector<Point> r, RotatedRect box) {
 
 	if ((box.size.width < 50) && (box.size.width < 50)) {
-		min_rect.push_back(box);
-		min_r.push_back(r);
+		if (min_rect.size() == 0)	{		// first rect
+			min_rect.push_back(box);
+			min_r.push_back(r);
+		}
+		else {							// every other rect
+			bool is_inside = true;
+			for (int i = 0; i < int(min_rect.size()); ++i) {
+				if (box.boundingRect().contains(min_rect[i].center)) { 	// if hierachical boxes break; else add box
+					is_inside = true;
+					break;
+				}
+				else {
+					is_inside = false;
+				}
+			}
+			if (is_inside == false) {
+				min_rect.push_back(box);
+				min_r.push_back(r);
+			}
+		}				
 	}
 }
