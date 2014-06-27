@@ -7,8 +7,8 @@
 
 using namespace cv;
 
-int SYSTEM_INPUT = 1; // uses a picture; change it to 1 to use the stream
-int ALGORITHM = 1; // uses only contours; change it to 1 to use MSER or to two to use both
+int SYSTEM_INPUT = 1; // 0 uses a picture; change it to 1 to use the stream
+int ALGORITHM = 1; // 0 uses only contours; change it to 1 to use MSER or to 2 to use both
 
 baumer::BCamera* g_cam = 0;
 baumer::BSystem* g_system  = 0;
@@ -27,21 +27,9 @@ bool set_min_rect = true;
 std::vector<std::vector<Point> > min_r;
 RotatedRect min_box;
 
-static const Vec3b bcolors[] = {
-    Vec3b(0,0,255),
-    Vec3b(0,128,255),
-    Vec3b(0,255,255),
-    Vec3b(0,255,0),
-    Vec3b(255,128,0),
-    Vec3b(255,255,0),
-    Vec3b(255,0,0),
-    Vec3b(255,0,255),
-    Vec3b(255,255,255)
-};
-
 // mser values
 int _delta=1; 				// default: 1; 			good: 1 						[1; infinity]
-int _min_area=60; 			// default: 60; 		good: 60 						[1; infinity]
+int _min_area=600; 			// default: 60; 		good: 60 						[1; infinity]
 int _max_area=200000;		// default: 14 400; 	good: 20 000 for fingertips		[1; infinity]
 double _max_variation=.03; 	// default: 0.25;		good: 0.03 - 0.05				[0; 1]
 double _min_diversity=.5;	// default: 0.2;		good: 0.5 - 0.7					[0; 1]
@@ -60,6 +48,7 @@ void get_contours(Mat img_cont);
 void mser_algo(Mat temp_img);
 void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0);
 void get_min_box(vector<Point> r, RotatedRect box);
+bool is_bigger(RotatedRect box_1, RotatedRect box_2);
 
 int main() {
 
@@ -303,46 +292,53 @@ void mser_algo(Mat temp_img)  {
 }
 
 void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
-	for( int i = (int)contours.size()-1; i >= 0; i-- ) {
-		const vector<Point>& r = contours[i];
-		RotatedRect box = fitEllipse( r );
-		get_min_box(r, box);
-		ellipse( ellipses, box, Scalar(125,125,0), 2 ); //196,255,255
-		
+	std::vector<Point> r;
+	std::vector<RotatedRect> boxes;
+	min_r.clear();
+	min_rect.clear();
+
+	for( int i = (int)contours.size()-1; i >= 0; i-- ) {	// for each contour get on box
+		r = contours[i];
+		boxes.push_back(fitEllipse( r ));
 	}
 
-	if (SYSTEM_INPUT == 1) {
-		if (min_r.size() > 0) {
-			/* min_box = fitEllipse( min_r );
-			float scaled_touch_x = min_box.center.x / 1392;
-			float scaled_touch_y = min_box.center.y / 1044;
-			std::cout << scaled_touch_x << ", " << scaled_touch_y << std::endl; */
+	sort(boxes.begin(), boxes.end(), is_bigger);	// sort from smallest to biggest box
+	
+	if (!boxes.empty()) {
+		for (std::vector<RotatedRect>::iterator i = boxes.begin(); i != boxes.end() ; ++i) {	//get only the smallest touchpoints
+			get_min_box(r, *i);
+			ellipse( ellipses, *i, Scalar(125,125,0), 2 ); // color ellipses
+		}
+	}
 
+	if (!min_rect.empty() || !min_r.empty()) {
+		if (SYSTEM_INPUT == 1) {
+			if (min_r.size() > 0) {
+				for (int i = 0; i < int(min_rect.size()); ++i) {
+					min_box = fitEllipse( min_r[i] );
+					float scaled_touch_x = min_box.center.x / 1392;
+					float scaled_touch_y = min_box.center.y / 1044;
+					std::cout << "Touchpoint " << i << ": " << "[" << scaled_touch_x << ", " << scaled_touch_y << "]" << std::endl;
+				}
+			}
+		}
+		else {
 			for (int i = 0; i < int(min_rect.size()); ++i) {
-			min_box = fitEllipse( min_r[i] );
-			float scaled_touch_x = min_box.center.x / 1392;
-			float scaled_touch_y = min_box.center.y / 1044;
-			std::cout << "Touchpoint " << i << ": " << "[" << scaled_touch_x << ", " << scaled_touch_y << "]" << std::endl;
-		}
-			
-		}
-	}
-	else {
-		for (int i = 0; i < int(min_rect.size()); ++i) {
-			min_box = fitEllipse( min_r[i] );
+				min_box = fitEllipse( min_r[i] );			// draw an ellipse for each touchpoint
 
-			///// Here you get the touchpoints, have fun ;) /////
+				///// Here you get the touchpoints, have fun ;) /////
 
-			float scaled_touch_x = min_box.center.x / 1392;
-			float scaled_touch_y = min_box.center.y / 1044;
-			std::cout << "Touchpoint " << i << ": " << "[" << scaled_touch_x << ", " << scaled_touch_y << "]" << std::endl;
+				float scaled_touch_x = min_box.center.x / 1392;		// framesize; hardcoded (!!!)
+				float scaled_touch_y = min_box.center.y / 1044;
+				std::cout << "Touchpoint " << i << ": " << "[" << scaled_touch_x << ", " << scaled_touch_y << "]" << std::endl;
+			}
 		}
 	}
 }
 
 void get_min_box(vector<Point> r, RotatedRect box) {
 
-	if ((box.size.width < 50) && (box.size.width < 50)) {
+	if ((box.size.width < 500) && (box.size.width < 500)) {
 		if (min_rect.size() == 0)	{		// first rect
 			min_rect.push_back(box);
 			min_r.push_back(r);
@@ -364,4 +360,8 @@ void get_min_box(vector<Point> r, RotatedRect box) {
 			}
 		}				
 	}
+}
+
+bool is_bigger(RotatedRect box_1, RotatedRect box_2) {
+	return box_1.boundingRect().size().area() < box_2.boundingRect().size().area();
 }
