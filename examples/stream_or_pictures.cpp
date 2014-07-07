@@ -29,8 +29,8 @@ RotatedRect min_box;
 
 // mser values
 int _delta=1; 				// default: 1; 			good: 1 						[1; infinity]
-int _min_area=600; 			// default: 60; 		good: 60 						[1; infinity]
-int _max_area=200000;		// default: 14 400; 	good: 20 000 for fingertips		[1; infinity]
+int _min_area=10; //600			// default: 60; 		good: 60 						[1; infinity]
+int _max_area=500; //200000		// default: 14 400; 	good: 20 000 for fingertips		[1; infinity]
 double _max_variation=.03; 	// default: 0.25;		good: 0.03 - 0.05				[0; 1]
 double _min_diversity=.5;	// default: 0.2;		good: 0.5 - 0.7					[0; 1]
 
@@ -135,7 +135,7 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        }
 		        else if (char(key) == 32) { // Space saves the current image
 		        	//cvSaveImage("current.png", frame);
-		        	cvSaveImage("min.png", frame);
+		        	//cvSaveImage("min.png", frame);
 		        	minI = imread("min.png", CV_LOAD_IMAGE_GRAYSCALE);
 		        }
 		        else if (char(key) == 10) { // Enter takes an image of the background
@@ -227,10 +227,10 @@ void get_contours(Mat img_cont) {
 	
 	if (SYSTEM_INPUT == 0) {
 		cvtColor(img_cont, img_cont, CV_BGR2GRAY);
-		threshold(img_cont, img2, 65, 255, CV_THRESH_BINARY);
+		threshold(img_cont, img2, 65, 255, CV_THRESH_BINARY); //65
 	}
 	else {
-		threshold(img_cont, img2, 20, 255, CV_THRESH_BINARY); // smaller threshold possible because of the background substraction
+		threshold(img_cont, img2, 60, 255, CV_THRESH_BINARY); // smaller threshold possible because of the background substraction
 	}
 
 	// detect contours
