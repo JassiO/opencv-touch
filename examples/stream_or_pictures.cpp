@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/video/background_segm.hpp>
+#include <cmath>
 
 using namespace cv;
 
@@ -25,7 +26,8 @@ std::vector<RotatedRect> min_rect;
 bool set_min_rect = true;
 std::vector<std::vector<Point> > min_r;
 RotatedRect min_box, max_rect;
-vector<vector<Point> > contours, prev_contours;
+float prev_x, prev_y;
+int i;
 
 
 int largest_area=0;
@@ -36,7 +38,7 @@ Rect bounding_rect;
 
 // mser values
 int _delta=1; 				// default: 1; 			good: 1 						[1; infinity]
-int _min_area=10; //600			// default: 60; 		good: 60 						[1; infinity]
+int _min_area=2; //600			// default: 60; 		good: 60 						[1; infinity]
 int _max_area=500; //200000		// default: 14 400; 	good: 20 000 for fingertips		[1; infinity]
 double _max_variation=.03; 	// default: 0.25;		good: 0.03 - 0.05				[0; 1]
 double _min_diversity=.5;	// default: 0.2;		good: 0.5 - 0.7					[0; 1]
@@ -146,11 +148,12 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		            break;      
 		        }
 		        else if (char(key) == 32) { // Space saves the current image
-		        	//cvSaveImage("current.png", frame);
-		        	//cvSaveImage("min.png", frame);
+		        	cvSaveImage("current.png", frame);
+		        	cvSaveImage("min.png", frame);
 		        	minI = imread("min.png", CV_LOAD_IMAGE_GRAYSCALE);
 		        	maskI = imread("mask2.png", CV_LOAD_IMAGE_GRAYSCALE);
 		        	bitwise_not(maskI, maskI);
+
 		        }
 		        else if (char(key) == 10) { // Enter takes an image of the background
 		        	//cvSaveImage("background.png", frame);
@@ -198,14 +201,17 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        else if (char(key) == 43) {
 		        	max_intens = Mat(frame);
 		        }
+		        
+		        Mat black(frameMat.rows, frameMat.cols, frameMat.type(), Scalar::all(0));
+		        black.copyTo(frameMat, maskI);
 
 		        if(maxI.data && minI.data) {
-		        	Mat black(frameMat.rows, frameMat.cols, frameMat.type(), Scalar::all(0));
-		        	black.copyTo(frameMat, maskI);
-
 		        	subtract(Mat(frame), minI, temp2, noArray(), -1);
 			    	subtract(maxI, minI, temp3, noArray(), -1);
 			    	frameMat = ( temp2 / temp3) * pow(2, 8);
+			    }
+			    else {
+			    	frameMat = Mat(frame);
 			    }
 
 			    if (ALGORITHM == 0) {
@@ -224,7 +230,7 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 
 		        key = cvWaitKey(10); // throws a segmentation fault (?)
 	    	}
-		}
+		}		
 	}
 }
 
@@ -258,10 +264,11 @@ void get_contours(Mat img_cont) {
 
 	drawContours(cnt_img, contours, -1, Scalar(128,255,255));
 
-	//imshow("Contour", cnt_img);
+	imshow("Contour", cnt_img);
 }
 
 void mser_algo(Mat temp_img)  {
+	vector<vector<Point> > contours;
 
 	if (SYSTEM_INPUT == 0) {
 		cvtColor(temp_img, temp_img, CV_BGR2GRAY);
@@ -270,15 +277,7 @@ void mser_algo(Mat temp_img)  {
 	temp_img.copyTo(ellipses);
 
 	MSER ms(_delta, _min_area, _max_area, _max_variation, _min_diversity, _max_evolution, _area_threshold, _min_margin, _edge_blur_size);
-	ms(temp_img, contours, Mat()); 		
-
-	/*
-	std::cout 	<< "Delta: " <<_delta << ", " 
-				<< "Min Area: " <<_min_area << ", " 
-				<< "Max Area: " << _max_area << ", "
-				<< "Max Variation " << _max_variation << ", "
-				<< "Min Diversity " << _min_diversity << ", "
-				<< "Contours" << contours.size() << std::endl; */
+	ms(temp_img, contours, Mat());
 
 	cvtColor(ellipses, ellipses, CV_GRAY2BGR);
 	
@@ -300,7 +299,7 @@ void mser_algo(Mat temp_img)  {
 	//show contours
 	Mat cnt_img = Mat::zeros(temp_img.rows, temp_img.cols, CV_8UC3);
 	drawContours(cnt_img, contours, -1, Scalar(128,255,255));
-	imshow("Contour", cnt_img);
+	//imshow("Contour", cnt_img);
 }
 
 void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
@@ -309,7 +308,7 @@ void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
 	min_r.clear();
 	min_rect.clear();
 
-	for( int i = (int)contours.size()-1; i >= 0; i-- ) {	// for each contour get an box
+	for( int i = (int)contours.size()-1; i >= 0; i-- ) {	// for each contour get on box
 		r = contours[i];
 		boxes.push_back(fitEllipse( r ));
 	}
@@ -328,10 +327,20 @@ void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
 			if (min_r.size() > 0) {
 				for (int i = 0; i < int(min_rect.size()); ++i) {
 					min_box = fitEllipse( min_r[i] );
-					float scaled_touch_x = min_box.center.x / 1392;
+					double scaled_touch_x = min_box.center.x / 1392;
 					float scaled_touch_y = min_box.center.y / 1044;
-					std::cout << "Touchpoint " << i << ": " << "[" << scaled_touch_x << ", " << scaled_touch_y << "]" << std::endl;
-				}
+					/*
+					if (std::fabs(scaled_touch_x - prev_x) > 0.0001) {
+						scaled_touch_x = prev_x;
+					}
+					if (std::fabs(scaled_touch_y - prev_y) > 0.0001) {
+						scaled_touch_y = prev_y;
+					}*/
+					//prev_x = scaled_touch_x;
+					//prev_y = scaled_touch_y;
+					//std::cout << "Touchpoint " << i << ": " << "[" << std::fabs(scaled_touch_x) << ", " << std::fabs(scaled_touch_y) << "]" << std::endl;
+
+				}				
 			}
 		}
 		else {
