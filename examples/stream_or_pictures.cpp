@@ -16,16 +16,23 @@ baumer::BSystem* g_system  = 0;
 int width = 640;
 int height = 480;
 
-Mat frameMat, back, background, max_intens, MaskMOG, img0, ellipses, temp, gr, b1, b2, temp2, temp3, minI, previous;
+Mat frameMat, back, maxI, max_intens, maskI, maskI2, maskMinI, img0, ellipses, temp, gr, b1, b2, temp2, temp3, minI, previous, roi;
 int calc_every_second_frame = 0;
 char key;
 Ptr<BackgroundSubtractor> pMOG;
-vector<vector<Point> > contours;
 int skip_first_frame = 0;
 std::vector<RotatedRect> min_rect;
 bool set_min_rect = true;
 std::vector<std::vector<Point> > min_r;
-RotatedRect min_box;
+RotatedRect min_box, max_rect;
+vector<vector<Point> > contours, prev_contours;
+
+
+int largest_area=0;
+int largest_contour_index=0;
+Rect bounding_rect;
+
+
 
 // mser values
 int _delta=1; 				// default: 1; 			good: 1 						[1; infinity]
@@ -36,7 +43,7 @@ double _min_diversity=.5;	// default: 0.2;		good: 0.5 - 0.7					[0; 1]
 
 //used only with colored images
 int _max_evolution=200;
-double _area_threshold=5.5;
+double _area_threshold=0.5;
 double _min_margin=0.003; 
 int _edge_blur_size=5;
 
@@ -117,6 +124,9 @@ void init_camera() {
 }
 
 void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
+	Mat thr;
+	Mat dst;
+
 	while (true) {
 		if (!g_cam->capture() == NULL) {
 			if (g_cam->capture() == NULL) {
@@ -126,6 +136,8 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 				// save the data stream in each frame
 				IplImage* frame = cvCreateImageHeader(cvSize(width, height), IPL_DEPTH_8U, 1);
 				frame -> imageData = (char*) g_cam-> capture();
+
+				frameMat = Mat(frame);
 
 				// show stream
 				cvShowImage("Stream", frame);
@@ -137,11 +149,15 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        	//cvSaveImage("current.png", frame);
 		        	//cvSaveImage("min.png", frame);
 		        	minI = imread("min.png", CV_LOAD_IMAGE_GRAYSCALE);
+		        	maskI = imread("mask2.png", CV_LOAD_IMAGE_GRAYSCALE);
+		        	bitwise_not(maskI, maskI);
 		        }
 		        else if (char(key) == 10) { // Enter takes an image of the background
 		        	//cvSaveImage("background.png", frame);
-		        	background = imread("background.png", CV_LOAD_IMAGE_GRAYSCALE);
-		        	pMOG->operator()(background, MaskMOG);
+		        	maxI = imread("background.png", CV_LOAD_IMAGE_GRAYSCALE);
+		        	//threshold(maxI, maskI, 25, 255, CV_THRESH_BINARY); //65
+		        	//pMOG->operator()(background, MaskMOG);
+		        	
 		        }
 		        else if(char(key) ==  49 ) {
 		        	++_delta;
@@ -182,23 +198,14 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        else if (char(key) == 43) {
 		        	max_intens = Mat(frame);
 		        }
-		        
-		        if(background.data && minI.data) {
-			        
-		        	++calc_every_second_frame;
-			    	if (calc_every_second_frame % 2 == 1) {
-			    		// correct illumination
-			    		subtract(Mat(frame), minI, temp2, noArray(), -1);
-			    		subtract(background, minI, temp3, noArray(), -1);
-			    		frameMat = ( temp2 / temp3) * pow(2, 8);
-			    		frameMat.copyTo(previous);
-			    	}
-			    	else {
-			    		frameMat = previous;
-			    	}
-			    }
-			    else {                            
-			    	frameMat = Mat(frame);
+
+		        if(maxI.data && minI.data) {
+		        	Mat black(frameMat.rows, frameMat.cols, frameMat.type(), Scalar::all(0));
+		        	black.copyTo(frameMat, maskI);
+
+		        	subtract(Mat(frame), minI, temp2, noArray(), -1);
+			    	subtract(maxI, minI, temp3, noArray(), -1);
+			    	frameMat = ( temp2 / temp3) * pow(2, 8);
 			    }
 
 			    if (ALGORITHM == 0) {
@@ -230,7 +237,7 @@ void get_contours(Mat img_cont) {
 		threshold(img_cont, img2, 65, 255, CV_THRESH_BINARY); //65
 	}
 	else {
-		threshold(img_cont, img2, 60, 255, CV_THRESH_BINARY); // smaller threshold possible because of the background substraction
+		threshold(img_cont, img2, 20, 255, CV_THRESH_BINARY); // smaller threshold possible because of the background substraction
 	}
 
 	// detect contours
@@ -251,7 +258,7 @@ void get_contours(Mat img_cont) {
 
 	drawContours(cnt_img, contours, -1, Scalar(128,255,255));
 
-	imshow("Contour", cnt_img);
+	//imshow("Contour", cnt_img);
 }
 
 void mser_algo(Mat temp_img)  {
@@ -289,6 +296,11 @@ void mser_algo(Mat temp_img)  {
 		}
 	}
 	imshow( "Ellipses", ellipses);
+
+	//show contours
+	Mat cnt_img = Mat::zeros(temp_img.rows, temp_img.cols, CV_8UC3);
+	drawContours(cnt_img, contours, -1, Scalar(128,255,255));
+	imshow("Contour", cnt_img);
 }
 
 void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
@@ -297,7 +309,7 @@ void draw_ellipses(vector<vector<Point> > contours, Mat ellipses, Mat img0) {
 	min_r.clear();
 	min_rect.clear();
 
-	for( int i = (int)contours.size()-1; i >= 0; i-- ) {	// for each contour get on box
+	for( int i = (int)contours.size()-1; i >= 0; i-- ) {	// for each contour get an box
 		r = contours[i];
 		boxes.push_back(fitEllipse( r ));
 	}
