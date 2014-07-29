@@ -40,7 +40,7 @@ Rect bounding_rect;
 int _delta=1; 				// default: 1; 			good: 1 						[1; infinity]
 int _min_area=2; //600			// default: 60; 		good: 60 						[1; infinity]
 int _max_area=500; //200000		// default: 14 400; 	good: 20 000 for fingertips		[1; infinity]
-double _max_variation=.03; 	// default: 0.25;		good: 0.03 - 0.05				[0; 1]
+double _max_variation=.08; 	// default: 0.25;		good: 0.03 - 0.05				[0; 1]
 double _min_diversity=.5;	// default: 0.2;		good: 0.5 - 0.7					[0; 1]
 
 //used only with colored images
@@ -139,6 +139,12 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 				IplImage* frame = cvCreateImageHeader(cvSize(width, height), IPL_DEPTH_8U, 1);
 				frame -> imageData = (char*) g_cam-> capture();
 
+///////////////////////
+				// SET VIEW OF INTEREST
+				cvSetImageROI(frame, cvRect(250, 200, 930, 600));
+				frameMat = Mat(frame);
+///////////////////////
+
 				frameMat = Mat(frame);
 
 				// show stream
@@ -148,11 +154,11 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		            break;      
 		        }
 		        else if (char(key) == 32) { // Space saves the current image
-		        	cvSaveImage("current.png", frame);
+		        	//cvSaveImage("current.png", frame);
 		        	cvSaveImage("min.png", frame);
 		        	minI = imread("min.png", CV_LOAD_IMAGE_GRAYSCALE);
-		        	maskI = imread("mask2.png", CV_LOAD_IMAGE_GRAYSCALE);
-		        	bitwise_not(maskI, maskI);
+		        	//maskI = imread("mask4.bmp", CV_LOAD_IMAGE_GRAYSCALE);
+		        	//bitwise_not(maskI, maskI);
 
 		        }
 		        else if (char(key) == 10) { // Enter takes an image of the background
@@ -203,7 +209,7 @@ void open_stream(int width, int height, Ptr<BackgroundSubtractor> pMOG) {
 		        }
 		        
 		        Mat black(frameMat.rows, frameMat.cols, frameMat.type(), Scalar::all(0));
-		        black.copyTo(frameMat, maskI);
+		        //black.copyTo(frameMat, maskI);
 
 		        if(maxI.data && minI.data) {
 		        	subtract(Mat(frame), minI, temp2, noArray(), -1);
